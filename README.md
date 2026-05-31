@@ -65,3 +65,26 @@ npm run dev
 ```
 
 The frontend runs at `http://localhost:5173` and proxies `/api` requests to `http://localhost:3001`.
+
+## Deployment
+
+### Frontend on Vercel
+- Deploy the `frontend/` directory as a Vite project.
+- Root directory: `frontend`
+- Build command: `npm install && npm run build`
+- Output directory: `dist`
+- Keep `frontend/vercel.json` and replace the destination with your Render backend URL.
+
+### Backend on Render
+- Deploy the `backend/` directory as a Render Web Service.
+- Build command: `npm install`
+- Start command: `npm start`
+- Add environment variables in Render:
+  - `PORT=3001`
+  - `FRONTEND_URL=https://<your-vercel-domain>`
+  - `HMAC_SECRET=<your-secret>`
+  - `DB_PATH=/opt/render/project/src/data/proofchain.sqlite`
+
+### Notes
+- The frontend uses rewritten API paths through Vercel to reach the backend.
+- The backend uses SQLite and is better hosted on Render than on Vercel.
