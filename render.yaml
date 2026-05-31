@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: proofchain-api
+    runtime: node
+    rootDir: backend
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        sync: false
+      - key: HMAC_SECRET
+        generateValue: true
+      - key: DB_PATH
+        value: /var/data/proofchain.sqlite
+    disks:
+      - name: proofchain-data
+        mountPath: /var/data
+        sizeGB: 1

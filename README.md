@@ -68,23 +68,56 @@ The frontend runs at `http://localhost:5173` and proxies `/api` requests to `htt
 
 ## Deployment
 
+This repo is configured for a split deployment:
+
+- Backend: Render Web Service from `backend/`
+- Frontend: Vercel Vite app from `frontend/`
+- API routing: Vercel rewrites `/api/*` to the Render service
+
 ### Frontend on Vercel
-- Deploy the `frontend/` directory as a Vite project.
-- Root directory: `frontend`
-- Build command: `npm install && npm run build`
-- Output directory: `dist`
-- Keep `frontend/vercel.json` and replace the destination with your Render backend URL.
+
+1. Deploy the backend on Render first and copy its public URL.
+2. In `frontend/vercel.json`, confirm the `/api/:path*` destination matches your Render backend URL.
+   - The included default is `https://proofchain-api.onrender.com/api/:path*`.
+   - If Render gives you a different URL, replace only the hostname.
+3. Import the GitHub repo in Vercel.
+4. Set the Vercel project root directory to `frontend`.
+5. Use the Vite framework preset.
+6. Use these build settings:
+   - Install command: `npm install`
+   - Build command: `npm run build`
+   - Output directory: `dist`
 
 ### Backend on Render
-- Deploy the `backend/` directory as a Render Web Service.
+
+Recommended: use the included `render.yaml` Blueprint.
+
+1. In Render, create a new Blueprint from this repo.
+2. Render will create the `proofchain-api` web service from `backend/`.
+3. Set `FRONTEND_URL` to your final Vercel production URL, for example:
+   - `https://your-project.vercel.app`
+4. Keep the generated `HMAC_SECRET`.
+5. Keep `DB_PATH=/var/data/proofchain.sqlite`.
+6. Keep the persistent disk mounted at `/var/data` so SQLite data survives deploys.
+
+Manual Render settings, if you do not use the Blueprint:
+
+- Root directory: `backend`
+- Runtime: Node
 - Build command: `npm install`
 - Start command: `npm start`
-- Add environment variables in Render:
-  - `PORT=3001`
+- Health check path: `/api/health`
+- Environment variables:
+  - `NODE_VERSION=20`
+  - `NODE_ENV=production`
   - `FRONTEND_URL=https://<your-vercel-domain>`
-  - `HMAC_SECRET=<your-secret>`
-  - `DB_PATH=/opt/render/project/src/data/proofchain.sqlite`
+  - `HMAC_SECRET=<long-random-secret>`
+  - `DB_PATH=/var/data/proofchain.sqlite`
+- Disk:
+  - Mount path: `/var/data`
+  - Size: `1 GB`
 
 ### Notes
-- The frontend uses rewritten API paths through Vercel to reach the backend.
-- The backend uses SQLite and is better hosted on Render than on Vercel.
+- The frontend uses same-origin `/api` calls. In production, Vercel rewrites those requests to Render.
+- The backend uses SQLite and should run on Render with a persistent disk. Without a disk, proof records can be lost between deploys.
+- After Vercel is live, update `FRONTEND_URL` in Render to the Vercel production URL and redeploy the backend.

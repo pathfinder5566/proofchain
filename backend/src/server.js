@@ -16,7 +16,22 @@ const chainRoutes = require("./routes/chain");
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors({ origin: process.env.FRONTEND_URL || true }));
+const allowedOrigins = (process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.set("trust proxy", 1);
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    }
+  })
+);
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", (req, res) => {
