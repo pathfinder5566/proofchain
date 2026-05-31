@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://proofchain-api.onrender.com/api/:path*"
+      "destination": "https://proofchain-olgg.onrender.com*"
     },
     {
       "source": "/(.*)",
